@@ -78,11 +78,11 @@ button{font-family:inherit}
 .stage.withqr .brow .name{grid-column:1 / 3}
 .brow .name{font-size:40px;font-weight:900;line-height:1.25;display:flex;align-items:center;gap:16px}
 .stage.two .brow .name{font-size:56px}
-.brow .top{font-size:22px;font-weight:800;color:var(--goldtxt);background:var(--goldsoft);padding:4px 14px;border-radius:6px;letter-spacing:1px;opacity:0;transform:translateY(6px);transition:opacity .4s .9s,transform .4s .9s;white-space:nowrap}
+.brow .top{font-size:22px;font-weight:800;color:var(--goldtxt);background:var(--goldsoft);padding:4px 14px;border-radius:6px;letter-spacing:1px;opacity:0;transform:translateY(6px);transition:opacity .4s 2.2s,transform .4s 2.2s;white-space:nowrap}
 .brow.lead .top{opacity:1;transform:none}
 .track{position:relative;height:64px;background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .stage.two .track{height:80px}
-.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px;background:linear-gradient(90deg,#7FA9E8,#A9C6F0);transition:width 1.1s cubic-bezier(.2,.8,.2,1),background .4s}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px;background:linear-gradient(90deg,#7FA9E8,#A9C6F0);transition:width 1.6s cubic-bezier(.2,.8,.2,1),background .4s}
 .brow.lead .fill{background:linear-gradient(90deg,var(--blue),var(--blue2))}
 .brow.c-pos .name{color:var(--blue)} .brow.c-pos .fill{background:linear-gradient(90deg,var(--blue),var(--blue2))}
 .brow.c-neg .name{color:var(--negtxt)} .brow.c-neg .fill{background:linear-gradient(90deg,var(--neg),#EE8A72)}
@@ -263,13 +263,14 @@ button{font-family:inherit}
     var leads = Q.opts.filter(function(o){ return max > 0 && cnt[o.k] === max; }).length;
     Q.opts.forEach(function(o){
       var x = rows[o.k], pc = all ? Math.round(cnt[o.k] * 100 / all) : 0;
-      x.n.textContent = cnt[o.k]; x.p.textContent = pc + "%";
+      if (!counting) { x.n.textContent = shown ? cnt[o.k] : 0; x.p.textContent = (shown ? pc : 0) + "%"; }
       x.f.style.width = (shown ? pc : 0) + "%";
+      x.target = cnt[o.k]; x.tpc = pc;
       x.r.classList.toggle("lead", shown && Q.opts.length > 2 && max > 0 && cnt[o.k] === max && leads < Q.opts.length);
     });
     document.getElementById("empty").hidden = all > 0;
     var na = document.getElementById("nAll");
-    if (all !== lastAll) { na.textContent = all; na.classList.remove("bump"); void na.offsetWidth; if (lastAll >= 0 && shown) na.classList.add("bump"); lastAll = all; }
+    if (!shown) { na.textContent = "0"; } else if (all !== lastAll) { na.textContent = all; na.classList.remove("bump"); void na.offsetWidth; if (lastAll >= 0 && shown) na.classList.add("bump"); lastAll = all; }
   }
   function later(){ clearTimeout(timer); timer = setTimeout(render, 120); }
   function take(m){
@@ -292,7 +293,21 @@ button{font-family:inherit}
   es.onmessage = function(e){ try { take(JSON.parse(e.data)); } catch(x){} };
   render();
   // 開いてすぐ、0から棒が伸びる（発表の演出）
-  setTimeout(function(){ shown = true; render(); }, 900);
+  var counting = false;
+  function reveal(){
+    // 棒を1本ずつ少しずらして伸ばし、数字も0から数え上げる
+    Q.opts.forEach(function(o, i){ rows[o.k].f.style.transitionDelay = (i * 0.18) + "s"; });
+    shown = true; counting = true; render();
+    var t0 = performance.now(), dur = 1600 + Q.opts.length * 180;
+    (function step(now){
+      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      Q.opts.forEach(function(o){ var x = rows[o.k]; x.n.textContent = Math.round(x.target * e); x.p.textContent = Math.round(x.tpc * e) + "%"; });
+      if (k < 1) requestAnimationFrame(step);
+      else { counting = false; Q.opts.forEach(function(o){ rows[o.k].f.style.transitionDelay = "0s"; }); render(); }
+    })(t0);
+  }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { shown = true; render(); }
+  else setTimeout(reveal, 900);
 
   document.getElementById("btnFull").addEventListener("click", function(){
     var d = document.documentElement;
