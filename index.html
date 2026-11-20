@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>地域展開アンケート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap">
+<style>
+/* PDホームページの配色：紺・青・シアン・金。スライドと同じ白→マリンブルーのグラデーション */
+:root{
+  --ink:#0F172A; --sub:#475569; --muted:#64748B; --line:#E2E8F0;
+  --blue:#0052D4; --blue2:#2F86F0; --cyan:#00C6FF; --gold:#D4AF37; --goldtxt:#8A6318; --goldsoft:#F6EFDA;
+  --soft:#E8F0FC; --neg:#E0583F; --negtxt:#B5361F; --negsoft:#FCE9E4; --ok:#13704F;
+  --card:#FFFFFF;
+  --bg:linear-gradient(160deg,#FFFFFF 0%,#F2F8FD 45%,#CFE6F7 100%);
+  --font:'Noto Sans JP','Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo',sans-serif;
+  color-scheme:light;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{font-family:var(--font);color:var(--ink);background:#F2F8FD;background-image:var(--bg);background-attachment:fixed;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+[hidden]{display:none!important}
+.mark{display:inline-flex;align-items:center;gap:10px;font-weight:800;letter-spacing:3px;color:var(--ink)}
+.mark b{color:var(--gold);font-weight:800}
+
+/* ---------- スマホの回答ページ ---------- */
+.phone{display:flex;flex-direction:column;gap:22px;max-width:560px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 150px) max(16px,env(safe-area-inset-left,0px))}
+.phone .mark{font-size:13px}
+.intro{display:flex;flex-direction:column;gap:10px}
+.intro h1{font-size:24px;font-weight:900;line-height:1.45;text-wrap:balance}
+.intro p{font-size:15px;color:var(--sub);line-height:1.7}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 4px 20px rgba(15,23,42,.05)}
+.q .no{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:2px;display:flex;align-items:center;gap:8px}
+.q .no:before{content:"";width:22px;height:3px;background:var(--gold)}
+.q h2{font-size:19px;font-weight:800;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts.two{flex-direction:row}
+.opts.two .opt{flex:1;justify-content:center;font-size:20px;padding:20px 8px;font-weight:900}
+.opt{appearance:none;display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:#F8FAFC;color:var(--ink);
+  border-radius:10px;padding:13px 14px;font-size:16px;font-weight:700;line-height:1.4;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.opt:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.opt .dot{width:20px;height:20px;border-radius:50%;border:2px solid #94A3B8;flex-shrink:0}
+.opts.two .opt .dot{display:none}
+.opt.on{border-color:var(--blue);background:var(--soft);color:var(--blue)}
+.opt.on .dot{border-color:var(--blue);background:var(--blue);box-shadow:inset 0 0 0 4px #fff}
+.opt.pos{color:var(--blue)}
+.opt.pos.on{background:var(--blue);color:#fff}
+.opt.neg{color:var(--negtxt)}
+.opt.neg.on{border-color:var(--neg);background:var(--neg);color:#fff}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);border-top:1px solid var(--line);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 12px) max(16px,env(safe-area-inset-left,0px))}
+.dock .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.dock .msg{font-size:14px;line-height:1.5;color:var(--sub);min-height:21px}
+.dock .msg.ok{color:var(--ok);font-weight:700}
+.dock .msg.err{color:var(--negtxt);font-weight:700}
+.send{appearance:none;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:18px;font-weight:900;padding:16px;cursor:pointer}
+.send:disabled{background:#94A3B8;cursor:default}
+.send:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+/* ---------- スクリーンの結果画面（1920×1080 を画面に合わせて拡大縮小） ---------- */
+.stage-wrap{position:fixed;inset:0;overflow:hidden;background:#DCEBF7}
+.stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;background-image:var(--bg);overflow:hidden}
+.stage .topbar{position:absolute;left:0;top:0;width:1920px;height:8px;background:linear-gradient(90deg,var(--blue) 0%,var(--cyan) 70%,var(--gold) 100%)}
+.stage .brand{position:absolute;right:128px;top:44px;font-size:24px}
+.stage .main{position:absolute;left:128px;top:120px;width:1664px;display:flex;flex-direction:column;gap:24px}
+.stage.withqr .main{width:1080px}
+.stage .eb{display:flex;align-items:center;gap:16px;font-size:28px;font-weight:700;color:var(--blue);letter-spacing:4px}
+.stage .eb:before{content:"";width:48px;height:4px;background:var(--gold)}
+.stage h1{font-size:64px;font-weight:900;line-height:1.3;text-wrap:balance}
+.bars{display:flex;flex-direction:column;gap:22px;margin-top:20px}
+.stage.two .bars{gap:40px;margin-top:36px}
+.brow{display:grid;grid-template-columns:600px 1fr 240px;align-items:center;column-gap:28px;row-gap:10px}
+.stage.withqr .brow{grid-template-columns:1fr 240px}
+.stage.withqr .brow .name{grid-column:1 / 3}
+.brow .name{font-size:40px;font-weight:900;line-height:1.25;display:flex;align-items:center;gap:16px}
+.stage.two .brow .name{font-size:56px}
+.brow .top{font-size:22px;font-weight:800;color:var(--goldtxt);background:var(--goldsoft);padding:4px 14px;border-radius:6px;letter-spacing:1px;opacity:0;transform:translateY(6px);transition:opacity .4s .9s,transform .4s .9s;white-space:nowrap}
+.brow.lead .top{opacity:1;transform:none}
+.track{position:relative;height:64px;background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stage.two .track{height:80px}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px;background:linear-gradient(90deg,#7FA9E8,#A9C6F0);transition:width 1.1s cubic-bezier(.2,.8,.2,1),background .4s}
+.brow.lead .fill{background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.brow.c-pos .name{color:var(--blue)} .brow.c-pos .fill{background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.brow.c-neg .name{color:var(--negtxt)} .brow.c-neg .fill{background:linear-gradient(90deg,var(--neg),#EE8A72)}
+.brow .num{font-size:48px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.brow .num small{font-size:28px;font-weight:700;color:var(--muted);margin-left:10px}
+.total{display:flex;align-items:baseline;gap:16px;margin-top:12px;font-size:32px;font-weight:700;color:var(--sub)}
+.total .n{font-size:56px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;display:inline-block}
+.total .n.bump{animation:bump .5s ease}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.18);color:var(--blue)}100%{transform:scale(1)}}
+.empty{font-size:32px;color:var(--muted);font-weight:700}
+.side{position:absolute;right:128px;top:200px;width:520px;display:flex;flex-direction:column;align-items:center;gap:22px;background:#FFFFFF;border:1px solid var(--line);border-radius:16px;padding:40px;box-shadow:0 4px 20px rgba(15,23,42,.06)}
+.side .qr{width:400px;height:400px}
+.side .qr svg{width:100%;height:100%;display:block}
+.side .how{font-size:32px;font-weight:900;text-align:center;line-height:1.45}
+.side .url{font-size:17px;color:var(--muted);white-space:nowrap;text-align:center}
+.conn{position:absolute;left:128px;bottom:52px;display:flex;align-items:center;gap:12px;font-size:22px;color:var(--muted)}
+.conn i{width:14px;height:14px;border-radius:50%;background:#94A3B8}
+.conn.live i{background:#1F9D74;box-shadow:0 0 0 6px rgba(31,157,116,.18)}
+.conn.bad i{background:var(--neg)}
+.testtag{position:absolute;left:128px;top:40px;font-size:22px;font-weight:800;color:#fff;background:var(--goldtxt);padding:6px 16px;border-radius:6px;letter-spacing:2px}
+.tools{position:fixed;right:16px;bottom:16px;display:flex;gap:8px;opacity:.25;transition:opacity .2s}
+.tools:hover,.tools:focus-within{opacity:1}
+.tools button{font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}.total .n.bump{animation:none}.brow .top{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- スマホ -->
+<main class="phone" id="phone" hidden>
+  <div class="mark">POSSIBILITY <b>DESIGN</b></div>
+  <div class="intro">
+    <h1>吹奏楽の地域展開がもたらすものとは</h1>
+    <p id="lead"></p>
+  </div>
+  <div id="qs" style="display:flex;flex-direction:column;gap:16px"></div>
+  <div class="dock"><div class="in">
+    <p class="msg" id="msg"></p>
+    <button class="send" id="send" type="button" disabled>送信する</button>
+  </div></div>
+</main>
+
+<!-- スクリーン -->
+<div class="stage-wrap" id="screen" hidden>
+  <div class="stage" id="stage">
+    <div class="topbar"></div>
+    <p class="testtag" id="testTag" hidden>練習用</p>
+    <div class="brand mark">POSSIBILITY <b>DESIGN</b></div>
+    <div class="main">
+      <p class="eb">みんなの回答</p>
+      <h1 id="sTitle"></h1>
+      <div class="bars" id="bars"></div>
+      <p class="empty" id="empty" hidden>まだ回答がありません</p>
+      <p class="total">回答 <span class="n" id="nAll">0</span>人</p>
+    </div>
+    <div class="side" id="side" hidden>
+      <div class="qr" id="qr" aria-label="回答ページのQRコード"></div>
+      <p class="how">スマホのカメラで<br>読み取ってください</p>
+      <p class="url" id="url"></p>
+    </div>
+    <p class="conn" id="conn"><i></i><span id="connT">接続しています…</span></p>
+  </div>
+  <div class="tools"><button type="button" id="btnFull">全画面（F）</button><button type="button" id="btnZero">表示をゼロに戻す</button></div>
+</div>
+
+<script>
+(function(){
+  var TOPIC = "pd-ogaki-416eef5ec2";
+  var BASE = "https://possibility-design.github.io/pd-poll/";
+  var QR = {"main": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"segno\"><g transform=\"scale(10)\"><path fill=\"#fff\" d=\"M0 0h37v37h-37z\"/><path class=\"qrline\" stroke=\"#0f172a\" d=\"M2 2.5h7m3 0h6m1 0h4m2 0h1m2 0h7m-33 1h1m5 0h1m1 0h2m1 0h2m5 0h1m1 0h5m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m1 0h7m1 0h1m1 0h3m5 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m3 0h2m1 0h1m4 0h1m3 0h3m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m2 0h2m1 0h2m2 0h2m1 0h2m1 0h1m3 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m4 0h1m3 0h1m2 0h2m1 0h2m1 0h1m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-23 1h2m2 0h2m1 0h2m5 0h1m-24 1h3m1 0h2m2 0h1m3 0h1m1 0h4m2 0h1m1 0h1m6 0h2m-32 1h3m4 0h5m4 0h1m2 0h3m1 0h1m2 0h2m1 0h2m1 0h1m-30 1h2m1 0h1m1 0h2m1 0h7m5 0h2m2 0h3m1 0h2m-31 1h3m2 0h4m1 0h2m2 0h1m2 0h2m1 0h2m1 0h1m1 0h1m1 0h1m2 0h1m-30 1h1m1 0h5m1 0h2m5 0h2m2 0h1m1 0h2m1 0h3m1 0h1m-32 1h2m1 0h3m2 0h2m2 0h3m4 0h1m1 0h1m2 0h2m1 0h1m2 0h2m-32 1h5m1 0h2m1 0h1m1 0h1m3 0h2m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m-31 1h1m1 0h2m3 0h2m1 0h5m2 0h1m2 0h3m1 0h3m3 0h1m-30 1h2m1 0h3m1 0h2m1 0h1m1 0h1m1 0h2m2 0h4m1 0h3m1 0h3m-31 1h1m4 0h1m4 0h2m1 0h1m1 0h1m2 0h1m3 0h3m1 0h1m1 0h2m1 0h2m-33 1h1m2 0h5m3 0h1m3 0h1m1 0h1m2 0h3m2 0h1m1 0h2m1 0h2m-32 1h1m2 0h1m4 0h4m2 0h1m2 0h2m1 0h1m4 0h2m1 0h1m2 0h2m-32 1h2m2 0h3m1 0h1m2 0h1m3 0h2m3 0h2m4 0h1m1 0h4m-33 1h1m1 0h1m1 0h2m2 0h2m1 0h2m1 0h3m1 0h3m2 0h1m2 0h1m2 0h1m2 0h1m-27 1h1m3 0h2m1 0h1m1 0h1m6 0h2m2 0h2m1 0h4m-32 1h2m4 0h4m1 0h1m1 0h2m2 0h1m1 0h1m1 0h4m3 0h1m-30 1h1m4 0h2m1 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h7m2 0h2m-25 1h1m2 0h2m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m3 0h2m-30 1h7m4 0h1m1 0h1m1 0h3m1 0h1m3 0h2m1 0h1m1 0h1m-29 1h1m5 0h1m1 0h1m2 0h1m1 0h1m4 0h1m1 0h5m3 0h5m-33 1h1m1 0h3m1 0h1m5 0h1m2 0h2m1 0h1m1 0h9m1 0h1m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h4m1 0h1m1 0h2m1 0h2m2 0h1m1 0h1m1 0h2m-33 1h1m1 0h3m1 0h1m1 0h2m2 0h3m6 0h1m1 0h1m2 0h2m1 0h1m-30 1h1m5 0h1m1 0h1m3 0h2m1 0h2m1 0h1m1 0h1m1 0h3m1 0h3m3 0h1m-33 1h7m5 0h2m1 0h1m2 0h4m3 0h2m1 0h1m1 0h1\"/></g></svg>\n", "test": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"segno\"><g transform=\"scale(10)\"><path fill=\"#fff\" d=\"M0 0h37v37h-37z\"/><path class=\"qrline\" stroke=\"#0f172a\" d=\"M2 2.5h7m2 0h1m1 0h1m2 0h1m1 0h1m1 0h3m2 0h1m2 0h7m-33 1h1m5 0h1m3 0h1m1 0h1m2 0h2m1 0h1m3 0h1m3 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m9 0h1m4 0h2m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m4 0h3m1 0h1m2 0h4m1 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m1 0h1m2 0h2m1 0h1m9 0h1m1 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h1m7 0h1m3 0h2m-22 1h1m1 0h5m2 0h2m2 0h2m2 0h1m4 0h3m1 0h5m-31 1h6m2 0h1m3 0h2m2 0h2m1 0h2m2 0h1m2 0h2m1 0h2m1 0h1m-32 1h3m1 0h2m1 0h3m2 0h5m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1m-31 1h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m2 0h3m1 0h5m3 0h3m1 0h1m-31 1h2m2 0h4m2 0h1m1 0h3m2 0h2m1 0h1m1 0h1m2 0h3m-30 1h1m1 0h1m5 0h2m1 0h1m1 0h1m1 0h1m2 0h3m1 0h2m2 0h1m2 0h1m1 0h2m-33 1h3m3 0h2m3 0h1m3 0h4m1 0h2m2 0h4m3 0h1m-30 1h1m2 0h1m1 0h3m5 0h1m3 0h1m1 0h2m2 0h3m1 0h2m-28 1h2m1 0h1m1 0h1m4 0h1m1 0h1m1 0h1m4 0h2m1 0h1m1 0h2m3 0h1m-33 1h1m3 0h2m1 0h4m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m1 0h3m1 0h2m1 0h1m-33 1h4m1 0h3m1 0h2m1 0h2m1 0h1m2 0h1m1 0h3m2 0h4m1 0h2m-32 1h3m2 0h1m1 0h1m3 0h1m1 0h1m2 0h1m4 0h1m1 0h3m1 0h5m-32 1h2m1 0h2m1 0h3m1 0h2m1 0h2m3 0h3m3 0h2m2 0h2m1 0h1m-32 1h2m2 0h2m3 0h1m2 0h1m2 0h3m1 0h2m1 0h2m1 0h2m5 0h1m-33 1h1m4 0h2m4 0h1m1 0h1m4 0h1m1 0h3m5 0h4m-32 1h1m2 0h3m3 0h3m1 0h2m1 0h1m3 0h2m1 0h1m4 0h3m-31 1h1m4 0h2m1 0h1m4 0h1m3 0h1m2 0h1m1 0h7m2 0h1m-24 1h3m1 0h1m1 0h1m2 0h4m2 0h2m3 0h1m1 0h3m-33 1h7m3 0h2m1 0h3m1 0h1m3 0h4m1 0h1m1 0h1m1 0h2m-32 1h1m5 0h1m1 0h1m2 0h1m1 0h1m2 0h3m1 0h5m3 0h3m-31 1h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m5 0h1m1 0h6m2 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m5 0h1m2 0h3m1 0h2m1 0h1m2 0h2m1 0h2m-33 1h1m1 0h3m1 0h1m1 0h2m3 0h5m3 0h1m1 0h1m2 0h2m1 0h1m-30 1h1m5 0h1m2 0h3m2 0h2m4 0h3m5 0h1m1 0h1m-31 1h7m1 0h2m1 0h3m1 0h1m1 0h1m2 0h1m1 0h3m2 0h1m3 0h1\"/></g></svg>\n"};
+  var QS = [{"id": "pn", "short": "ポジティブ／ネガティブ", "qr": true, "ask": "「部活動の地域展開」と聞いて、どう感じますか？", "screen": "部活動の地域展開は・・・", "opts": [{"k": "pos", "t": "ポジティブ", "c": "pos"}, {"k": "neg", "t": "ネガティブ", "c": "neg"}]}, {"id": "fee", "short": "部費", "ask": "中学・高校の部活の部費は、月いくらでしたか？", "screen": "中学・高校の部費は、月いくらでしたか", "opts": [{"k": "u1", "t": "1,000円未満"}, {"k": "1to3", "t": "1,000〜3,000円"}, {"k": "3to5", "t": "3,000〜5,000円"}, {"k": "o5", "t": "5,000円以上"}, {"k": "na", "t": "覚えていない／部活なし"}]}, {"id": "inst", "short": "楽器の持ち主", "ask": "部活で使っていた楽器は、だれのものでしたか？", "screen": "部活で使っていた楽器は、だれのもの？", "opts": [{"k": "school", "t": "学校の楽器"}, {"k": "own", "t": "自分の楽器"}, {"k": "both", "t": "両方"}, {"k": "none", "t": "吹奏楽部ではなかった"}]}, {"id": "cont", "short": "卒業後も演奏したいか", "ask": "卒業したあとも、地域の吹奏楽団で演奏したいですか？", "screen": "卒業後も、地域の吹奏楽団で演奏したい？", "opts": [{"k": "yes", "t": "ぜひしたい"}, {"k": "maybe", "t": "機会があれば"}, {"k": "dk", "t": "わからない"}, {"k": "no", "t": "しないと思う"}]}, {"id": "job", "short": "やってみたい仕事", "ask": "音楽や楽器の仕事で、いちばんやってみたいのは？", "screen": "いちばんやってみたい仕事は？", "opts": [{"k": "repair", "t": "楽器の修理・調整"}, {"k": "rental", "t": "レンタル楽器の整備と貸し出し"}, {"k": "teach", "t": "地域クラブの指導者"}, {"k": "play", "t": "演奏する仕事"}, {"k": "other", "t": "ほかの仕事・まだ決めていない"}]}];
+  var qs = new URLSearchParams(location.search);
+  var test = qs.get("t") === "test";
+  var topic = TOPIC + (test ? "-test" : "");
+  var api = "https://ntfy.sh/" + topic;
+  function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v);}catch(e){ return null; } }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // ---------- スマホ ----------
+  if (!qs.get("screen")) {
+    document.getElementById("phone").hidden = false;
+    document.getElementById("lead").textContent = QS.length + "つの質問に答えて、いちばん下の「送信する」を押してください。結果は、講義の中でスライドといっしょに発表します。名前は送られません。";
+    var cid = store("pd-cid");
+    if (!cid) { cid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); store("pd-cid", cid); }
+    var akey = "pd-ans-" + topic;
+    var ans = {};
+    try { ans = JSON.parse(store(akey) || "{}") || {}; } catch(e) { ans = {}; }
+    var sentJSON = store(akey + "-sent") || "";
+    var busy = false;
+    var box = document.getElementById("qs"), msg = document.getElementById("msg"), send = document.getElementById("send");
+    QS.forEach(function(q, i){
+      var card = el("section", "q");
+      card.appendChild(el("p", "no", "質問 " + (i + 1)));
+      card.appendChild(el("h2", null, q.ask));
+      var opts = el("div", "opts" + (q.opts.length === 2 ? " two" : ""));
+      q.opts.forEach(function(o){
+        var b = el("button", "opt" + (o.c ? " " + o.c : ""));
+        b.type = "button"; b.dataset.q = q.id; b.dataset.k = o.k;
+        b.appendChild(el("span", "dot")); b.appendChild(el("span", null, o.t));
+        b.addEventListener("click", function(){ ans[q.id] = o.k; store(akey, JSON.stringify(ans)); paint(); });
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      box.appendChild(card);
+    });
+    function count(){ var n = 0; QS.forEach(function(q){ if (ans[q.id]) n++; }); return n; }
+    function paint(note, cls){
+      Array.prototype.forEach.call(document.querySelectorAll(".opt"), function(b){
+        var on = ans[b.dataset.q] === b.dataset.k; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      var n = count(), changed = JSON.stringify(ans) !== sentJSON;
+      send.disabled = busy || n === 0 || !changed;
+      send.textContent = sentJSON && changed ? "選び直した答えを送信する" : (sentJSON ? "送信しました" : "送信する");
+      var done = sentJSON && !changed;
+      msg.className = "msg" + (cls ? " " + cls : (done ? " ok" : ""));
+      msg.textContent = note || (done ? "✓ 送信しました。結果は講義の中で発表します。" :
+        n + " / " + QS.length + " 問に答えました" + (n > 0 && n < QS.length ? "（答えた分だけ送ることもできます）" : ""));
+    }
+    send.addEventListener("click", function(){
+      if (busy) return;
+      busy = true; paint("送っています…");
+      var snap = JSON.stringify(ans);
+      var body = JSON.stringify({v:2, c:cid, a:ans});
+      var tries = 0;
+      (function go(){
+        tries++;
+        fetch(api, {method:"POST", body:body}).then(function(r){
+          if (!r.ok) throw new Error(r.status);
+          busy = false; sentJSON = snap; store(akey + "-sent", snap); paint();
+        }).catch(function(){
+          if (tries < 3) { setTimeout(go, 1500 * tries); return; }
+          busy = false; paint("送れませんでした。電波のよい場所で、もう一度押してください。", "err");
+        });
+      })();
+    });
+    paint();
+    return;
+  }
+
+  // ---------- スクリーン ----------
+  var sid = qs.get("screen");
+  var Q = QS.filter(function(q){ return q.id === sid; })[0] || QS[0];
+  document.getElementById("screen").hidden = false;
+  document.title = "結果｜" + Q.short;
+  var stage = document.getElementById("stage");
+  if (test) document.getElementById("testTag").hidden = false;
+  document.getElementById("sTitle").textContent = Q.screen || Q.ask;
+  if (Q.qr) {
+    stage.classList.add("withqr");
+    document.getElementById("side").hidden = false;
+    document.getElementById("qr").innerHTML = QR[test ? "test" : "main"];
+    document.getElementById("url").textContent = BASE + (test ? "?t=test" : "");
+  }
+  if (Q.opts.length === 2) stage.classList.add("two");
+  function fit(){ var s = Math.min(innerWidth/1920, innerHeight/1080); stage.style.transform = "translate(-50%,-50%) scale(" + s + ")"; }
+  addEventListener("resize", fit); fit();
+
+  var rows = {};
+  var bars = document.getElementById("bars");
+  Q.opts.forEach(function(o){
+    var r = el("div", "brow" + (o.c ? " c-" + o.c : ""));
+    var nm = el("div", "name"); nm.appendChild(el("span", null, o.t)); nm.appendChild(el("span", "top", "いちばん多い"));
+    var tr = el("div", "track"); var f = el("div", "fill"); tr.appendChild(f);
+    var nu = el("div", "num"); var n1 = el("span", null, "0"); var n2 = el("small", null, "0%"); nu.appendChild(n1); nu.appendChild(n2);
+    r.appendChild(nm); r.appendChild(tr); r.appendChild(nu); bars.appendChild(r);
+    rows[o.k] = {r:r, f:f, n:n1, p:n2};
+  });
+
+  var cutKey = "pd-cut-" + topic;
+  var cut = Number(store(cutKey) || 0);
+  var seen = {}, latest = {};   // 回答者ごとに、いちばん新しい送信だけを数える
+  var shown = false, lastAll = -1, timer = null;
+  function render(){
+    var cnt = {}, all = 0;
+    Q.opts.forEach(function(o){ cnt[o.k] = 0; });
+    for (var c in latest) { var a = latest[c].a[Q.id]; if (Object.prototype.hasOwnProperty.call(cnt, a)) { cnt[a]++; all++; } }
+    var max = 0; Q.opts.forEach(function(o){ if (cnt[o.k] > max) max = cnt[o.k]; });
+    var leads = Q.opts.filter(function(o){ return max > 0 && cnt[o.k] === max; }).length;
+    Q.opts.forEach(function(o){
+      var x = rows[o.k], pc = all ? Math.round(cnt[o.k] * 100 / all) : 0;
+      x.n.textContent = cnt[o.k]; x.p.textContent = pc + "%";
+      x.f.style.width = (shown ? pc : 0) + "%";
+      x.r.classList.toggle("lead", shown && Q.opts.length > 2 && max > 0 && cnt[o.k] === max && leads < Q.opts.length);
+    });
+    document.getElementById("empty").hidden = all > 0;
+    var na = document.getElementById("nAll");
+    if (all !== lastAll) { na.textContent = all; na.classList.remove("bump"); void na.offsetWidth; if (lastAll >= 0 && shown) na.classList.add("bump"); lastAll = all; }
+  }
+  function later(){ clearTimeout(timer); timer = setTimeout(render, 120); }
+  function take(m){
+    if (!m || m.event !== "message" || seen[m.id]) return;
+    seen[m.id] = 1;
+    if (m.time < cut) return;
+    var d; try { d = JSON.parse(m.message); } catch(e) { return; }
+    if (!d || d.v !== 2 || typeof d.c !== "string" || !d.a || typeof d.a !== "object") return;
+    var c = d.c.slice(0, 40);
+    if (!latest[c] || latest[c].t <= m.time) latest[c] = {t:m.time, a:d.a};
+    later();
+  }
+  var conn = document.getElementById("conn"), connT = document.getElementById("connT");
+  function setConn(ok){ conn.className = "conn " + (ok ? "live" : "bad"); connT.textContent = ok ? "回答を受けつけています" : "つなぎ直しています…（そのままお待ちください）"; }
+  // この講義（90分）の回答だけを数える
+  var es = new EventSource(api + "/sse?since=3h");
+  var badT = null;
+  es.onopen = function(){ clearTimeout(badT); badT = null; setConn(true); };
+  es.onerror = function(){ if (!badT) badT = setTimeout(function(){ setConn(false); }, 4000); };
+  es.onmessage = function(e){ try { take(JSON.parse(e.data)); } catch(x){} };
+  render();
+  // 開いてすぐ、0から棒が伸びる（発表の演出）
+  setTimeout(function(){ shown = true; render(); }, 900);
+
+  document.getElementById("btnFull").addEventListener("click", function(){
+    var d = document.documentElement;
+    if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(function(){});
+    else if (document.exitFullscreen) document.exitFullscreen().catch(function(){});
+  });
+  var armed = false;
+  document.getElementById("btnZero").addEventListener("click", function(){
+    var b = this;
+    if (!armed) { armed = true; b.textContent = "もう一度押すと、全部の質問がゼロに戻ります"; setTimeout(function(){ armed = false; b.textContent = "表示をゼロに戻す"; }, 4000); return; }
+    cut = Math.floor(Date.now()/1000); store(cutKey, String(cut));
+    latest = {}; lastAll = -1; render();
+    armed = false; b.textContent = "表示をゼロに戻す";
+  });
+  addEventListener("keydown", function(e){ if (e.key === "f" || e.key === "F") document.getElementById("btnFull").click(); });
+})();
+</script>
+</body>
+</html>
